@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String    @id @default(uuid())
+  name     String
+  email    String    @unique
+  password String
+  Address  Address[]
+  Orders   Orders[]
+
+  @@map("users")
+}
+
+model Address {
+  id            String   @id @default(uuid())
+  id_user       String
+  user          User     @relation(fields: [id_user], references: [id])
+  street        String
+  street_number String
+  zipcode       String
+  id_district   Int
+  city          String
+  state         String
+  Orders        Orders[]
+
+  @@map("users_address")
+}
+
+model District {
+  id        String  @id @default(uuid())
+  id_tenant String
+  tenant    Tenants @relation(fields: [id_tenant], references: [id])
+  name      String
+  price     Float
+
+  @@map("disctricts")
+}
+
+model Product {
+  id              String            @id @default(uuid())
+  id_tenant       String
+  tenant          Tenants           @relation(fields: [id_tenant], references: [id])
+  name            String
+  price           Decimal
+  image           String
+  description     String
+  createdAt       DateTime          @default(now())
+  updateddAt      DateTime          @default(now())
+  ProductCategory ProductCategory[]
+  OrderProducts   OrderProducts[]
+
+  @@map("products")
+}
+
+model Category {
+  id              String            @id @default(uuid())
+  id_tenant       String
+  tenant          Tenants           @relation(fields: [id_tenant], references: [id])
+  name            String
+  description     String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @default(now())
+  ProductCategory ProductCategory[]
+
+  @@map("categories")
+}
+
+model ProductCategory {
+  id          String   @id @default(uuid())
+  id_product  String
+  product     Product  @relation(fields: [id_product], references: [id])
+  id_category String
+  category    Category @relation(fields: [id_category], references: [id])
+
+  @@map("products_categories")
+}
+
+model Tenants {
+  id         String     @id @default(uuid())
+  slug       String
+  name       String     @unique
+  main_color String
+  email      String
+  password   String
+  Product    Product[]
+  Category   Category[]
+  District   District[]
+  Orders     Orders[]
+  Banners    Banners[]
+
+  @@map("tenants")
+}
+
+model Orders {
+  id                   String          @id @default(uuid())
+  id_user              String
+  user                 User            @relation(fields: [id_user], references: [id])
+  id_tenant            String
+  tenant               Tenants         @relation(fields: [id_tenant], references: [id])
+  id_address           String
+  Address              Address         @relation(fields: [id_address], references: [id])
+  payment_method       String
+  payment_money_return Float
+  delivery_price       Float
+  subtotal             Float
+  order_date           DateTime        @default(now())
+  status               String
+  OrderProducts        OrderProducts[]
+
+  @@map("orders")
+}
+
+model OrderProducts {
+  id            String  @id @default(uuid())
+  id_order      String
+  order         Orders  @relation(fields: [id_order], references: [id])
+  id_product    String
+  product       Product @relation(fields: [id_product], references: [id])
+  product_price Float
+  quantity      Int
+
+  @@map("orders_products")
+}
+
+model Banners {
+  id        String  @id @default(uuid())
+  id_tenant String
+  tenant    Tenants @relation(fields: [id_tenant], references: [id])
+  image     String
+}
